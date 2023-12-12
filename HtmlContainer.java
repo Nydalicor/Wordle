@@ -15,8 +15,8 @@ public class HtmlContainer {
             "            font-family: Arial, Helvetica, sans-serif;\n" +
             "            text-align: center;\n" +
             "        }\n" +
-            "        .container{\n"+
-            "            display: none;\n"+
+            "        .container{\n" +
+            "            display: none;\n" +
             "        }\n" +
             "        #board {\n" +
             "            width: 349px;\n" +
@@ -90,20 +90,20 @@ public class HtmlContainer {
             "\n        .enter {\n" +
             "            width: 320px;\n" +
             "        }\n" +
-            ".input-container {\n"+
-            "    display: inline-table;\n"+
-            "    width: 200px;\n"+
-            "    margin: 0 auto;\n"+
+            ".input-container {\n" +
+            "    display: inline-table;\n" +
+            "    width: 200px;\n" +
+            "    margin: 0 auto;\n" +
             "    margin-top: 5rem;" +
-            "    }\n"+
+            "    }\n" +
             "#guess {" +
             "    width: 211px;" +
             "    height: 44px;" +
             "    padding: 5px;" +
-            "    border: 1px solid #ccc;"+
+            "    border: 1px solid #ccc;" +
             "    margin-bottom: 10px;" +
-            "    margin-top: 15px;"+
-            "    border-radius: 5px;"+
+            "    margin-top: 15px;" +
+            "    border-radius: 5px;" +
             "}" +
             "input[type=\"submit\"] {" +
             "    background-color: rgb(157, 157, 243);" +
@@ -112,15 +112,15 @@ public class HtmlContainer {
             "    border-radius: 0.5rem;" +
             "    color: #fff;" +
             "    cursor: pointer;" +
-            "    height: 50px;"+
-            "    width: 224px;"+
+            "    height: 50px;" +
+            "    width: 224px;" +
             "}\n" +
-            "#answer span{"+
-            "font-size: 40px;"+
-            "}\n"+
+            "#answer span{" +
+            "font-size: 40px;" +
+            "}\n" +
             ".js-enabled {" +
             "    display: block;" +
-            "}\n"+
+            "}\n" +
             "    </style>\n" +
             "    <script>\n" +
             "    const height = 6;\n" +
@@ -137,7 +137,7 @@ public class HtmlContainer {
             "        var containerElement = document.querySelector('.container');\n" +
             "        if (containerElement) {\n" +
             "        containerElement.classList.add('js-enabled');\n" +
-            "       }\n"+
+            "       }\n" +
 
             "        const buttons = document.querySelectorAll('.btn');\n" +
             "        const deleteBtn = document.querySelector('.delete');\n" +
@@ -176,14 +176,17 @@ public class HtmlContainer {
             "        // You can use AJAX or fetch to send the request\n" +
             "        // Example using fetch:\n" +
             "        // alert(word);\n" +
-            "        const sessionCookie = document.cookie.split(';').filter(item => item.includes('SESSIONID'))[0].split('=')[1];\n"
+            "        let requestOptions = {};\n" +
+            "        if(document.cookie != \"\"){\n" +
+            "           const sessionCookie = document.cookie.split(';').filter(item => item.includes('SESSIONID'))[0].split('=')[1];\n"
             +
-            "        const requestOptions = {\n" +
+            "            requestOptions = {\n" +
             "            method: 'GET',\n" +
             "            headers: {\n" +
             "            'Cookie': 'SESSIONID=' + sessionCookie\n" +
             "             }\n" +
-            "         };\n" +
+            "         };\n}else{\n" +
+            "             requestOptions = {method: 'GET'};\n}\n" +
             "         await fetch('/play.html?guess=' + word, requestOptions)\n" +
             "             .then(response => { return response.text() })\n" +
             "             .then(data => {\n" +
@@ -375,10 +378,10 @@ public class HtmlContainer {
             "    <noscript>\n" +
             "        <div class=\"row\">\n" +
             "            <form action=\"http://localhost:8021/play.html\" method=\"POST\">\n" +
-            "               <div class=\"input-container\">\n"+
+            "               <div class=\"input-container\">\n" +
             "                <input type=\"text\" name=\"guess\" id=\"guess\">\n" +
             "                <input type=\"submit\" value=\"ENTER\">\n" +
-            "               </div>\n"+
+            "               </div>\n" +
             "            </form>\n" +
             "        </div>\n" +
             "    </noscript>\n" +
@@ -425,7 +428,7 @@ public class HtmlContainer {
         }
         html = html.replace(
                 "<input type=\"text\" name=\"guess\" id=\"guess\">", "<div id=\"answer\">\n" +
-                coloredGuess.toString() +"</div>" + "\n<input type=\"text\" name=\"guess\" id=\"guess\">\n" );
+                        coloredGuess.toString() + "</div>" + "\n<input type=\"text\" name=\"guess\" id=\"guess\">\n");
         System.out.println("HTML: " + html);
     }
 

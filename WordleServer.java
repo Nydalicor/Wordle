@@ -40,7 +40,7 @@ public class WordleServer {
 
     private static void handleRequest(Socket clientSocket) {
         String rightWord = null;
-        boolean noCookie = true;
+        boolean noCookie = false;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 OutputStream outputStream = clientSocket.getOutputStream()) {
             char[] buffer = new char[1024];
@@ -62,8 +62,10 @@ public class WordleServer {
                 buffer = new char[bufferSize];
             }
             String sessionCookie = null;
+            System.out.println("un Cookie ? ");
             if (headers.containsKey("Cookie")) {
                 sessionCookie = getSessionCookie(headers.get("Cookie"));
+                System.out.println("Cookie: " + sessionCookie);
             }
             // Read the rest of the request
             int i = 0;
@@ -85,7 +87,7 @@ public class WordleServer {
                 String method = requestParts[0];
                 String path = requestParts[1];
                 if (sessionCookie == null) {
-                    noCookie = false;
+                    noCookie = true;
                     sessionCookie = java.util.UUID.randomUUID().toString();
                 }
                 if (!sessionMap.containsKey(sessionCookie)) {
@@ -217,6 +219,7 @@ public class WordleServer {
                     + "Transfer-Encoding: chunked" + "\r\n";
         }
         if (noCookie) {
+            System.out.println("Je met le cookie");
             httpResponse += "Set-Cookie: SESSIONID=" + sessionCookie + "; Max-Age=1800; SameSite=Strict\r\n"
                     + "Connection: close"
                     + "\r\n\r\n"
