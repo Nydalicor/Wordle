@@ -383,7 +383,7 @@ public class WordleServer {
      * @return The formatted chunked response.
      */
     private static String getChunkResponse(String response) {
-        StringBuilder formattedResponse = new StringBuilder();
+        String formattedResponse = "";
 
         final int SIZE = 128; // Size of each chunk
 
@@ -392,18 +392,21 @@ public class WordleServer {
             int currentChunkSize = Math.min(SIZE, response.length() - i);
 
             // Add the current chunk size in hexadecimal format, followed by a newline
-            formattedResponse.append(Integer.toHexString(currentChunkSize)).append("\r\n");
+            formattedResponse += Integer.toHexString(currentChunkSize) + "\r\n";
 
             // Add the current chunk itself, followed by a newline
-            formattedResponse.append(response.substring(i, i + currentChunkSize)).append("\r\n");
+            for (int j = i; j < i + currentChunkSize; j++) {
+                formattedResponse += response.charAt(j);
+            }
+            formattedResponse += "\r\n";
         }
 
         // Add the last chunk with a size of 0 (indicating the end), followed by two
         // newlines
-        formattedResponse.append("0").append("\r\n").append("\r\n");
+        formattedResponse += "0\r\n\r\n";
 
         // Convert the result to a string
-        return formattedResponse.toString();
+        return formattedResponse;
     }
 
     /**
