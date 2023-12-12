@@ -155,7 +155,19 @@ public class WordleServer {
             throws IOException {
         String guess = query.split("=")[1].toUpperCase();
         if (guess.length() != 5) {
-            sendResponse(outputStream, "Invalid request : guess must be 5 letters", 400);
+            if (method.equals("GET"))
+                sendResponse(outputStream, "Invalid request : guess must be 5 letters", 400);
+            else if (method.equals("POST")) {
+                HtmlContainer htmlContainer = new HtmlContainer(imagePath);
+                htmlContainer.updateGuessSection("BBBBB", guess);
+                String response = htmlContainer.getHtml();
+                String httpResponse = "HTTP/1.1 200 OK\r\n"
+                        + "Content-Type: text/html\r\n"
+                        + "Content-Length: " + response.length() + "\r\n";
+                httpResponse += "Connection: close\r\n\r\n" + response;
+                outputStream.write(httpResponse.getBytes());
+                outputStream.flush();
+            }
             return;
         }
         if (attemptsMap.get(sessionCookie).size() >= 6) {

@@ -411,29 +411,37 @@ public class HtmlContainer {
 
     public void updateGuessSection(String response, String guess) {
         StringBuilder coloredGuess = new StringBuilder();
-        System.out.println("Response tamère: " + response);
-        System.out.println("Guess : " + guess);
-        for (int i = 0; i < response.length(); i++) {
-            char letter = response.charAt(i);
-            switch (letter) {
-                case 'G':
-                    coloredGuess.append("<span class=\"correct-letter\">").append(guess.charAt(i)).append("</span>");
-                    break;
-                case 'Y':
-                    coloredGuess.append("<span class=\"existant-letter\">").append(guess.charAt(i)).append("</span>");
-                    break;
-                case 'B':
-                    coloredGuess.append("<span class=\"non-existant-letter\">").append(guess.charAt(i))
-                            .append("</span>");
-                    break;
-                default:
-                    coloredGuess.append(guess.charAt(i));
+        if (guess.length() != 5) {
+            coloredGuess.append(
+                    "<span>Your guess should be 5 letters long !</span>");
+            html = html.replace("<div class=\"row\">", "<div class=\"row\"><div id=\"answer\">\n" +
+                    coloredGuess.toString() + "</div>\n");
+        } else {
+            for (int i = 0; i < response.length(); i++) {
+                char letter = response.charAt(i);
+                switch (letter) {
+                    case 'G':
+                        coloredGuess.append("<span class=\"correct-letter\">").append(guess.charAt(i))
+                                .append("</span>");
+                        break;
+                    case 'Y':
+                        coloredGuess.append("<span class=\"existant-letter\">").append(guess.charAt(i))
+                                .append("</span>");
+                        break;
+                    case 'B':
+                        coloredGuess.append("<span class=\"non-existant-letter\">").append(guess.charAt(i))
+                                .append("</span>");
+                        break;
+                    default:
+                        coloredGuess.append(guess.charAt(i));
+                }
             }
+            html = html.replace(
+                    "<input type=\"text\" name=\"guess\" id=\"guess\">", "<div id=\"answer\">\n" +
+                            coloredGuess.toString() + "</div>"
+                            + "\n<input type=\"text\" name=\"guess\" id=\"guess\">\n");
         }
-        html = html.replace(
-                "<input type=\"text\" name=\"guess\" id=\"guess\">", "<div id=\"answer\">\n" +
-                        coloredGuess.toString() + "</div>" + "\n<input type=\"text\" name=\"guess\" id=\"guess\">\n");
-        System.out.println("HTML: " + html);
+
     }
 
     private String convertImageToBase64(String imagePath) {
