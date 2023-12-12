@@ -170,6 +170,25 @@ public class WordleServer {
             }
             return;
         }
+        // check if guess is alphabetical
+        for (int i = 0; i < guess.length(); i++) {
+            if (!Character.isLetter(guess.charAt(i))) {
+                if (method.equals("GET"))
+                    sendResponse(outputStream, "Invalid request : guess must be alphabetical", 400);
+                else if (method.equals("POST")) {
+                    HtmlContainer htmlContainer = new HtmlContainer(imagePath);
+                    htmlContainer.updateGuessSection("", guess);
+                    String response = htmlContainer.getHtml();
+                    String httpResponse = "HTTP/1.1 200 OK\r\n"
+                            + "Content-Type: text/html\r\n"
+                            + "Content-Length: " + response.length() + "\r\n";
+                    httpResponse += "Connection: close\r\n\r\n" + response;
+                    outputStream.write(httpResponse.getBytes());
+                    outputStream.flush();
+                }
+                return;
+            }
+        }
         if (attemptsMap.get(sessionCookie).size() >= 6) {
             sendResponse(outputStream, "Invalid request : you already tried too many Words", 400);
             sessionMap.remove(sessionCookie);

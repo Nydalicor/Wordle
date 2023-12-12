@@ -416,6 +416,11 @@ public class HtmlContainer {
                     "<span>Your guess should be 5 letters long !</span>");
             html = html.replace("<div class=\"row\">", "<div class=\"row\"><div id=\"answer\">\n" +
                     coloredGuess.toString() + "</div>\n");
+        } else if (response.equals("")) {
+            coloredGuess.append(
+                    "<span>Invalid guess ! The guess must be composed of letters only !</span>");
+            html = html.replace("<div class=\"row\">", "<div class=\"row\"><div id=\"answer\">\n" +
+                    coloredGuess.toString() + "</div>\n");
         } else {
             for (int i = 0; i < response.length(); i++) {
                 char letter = response.charAt(i);
