@@ -1,0 +1,75 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+#board {
+    width: 349px;
+    height: 395px;
+    margin: 0 auto;
+    margin-top: 10px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-wrap: wrap;
+}
+#text{
+    font-family: cursive;
+    font-size: 21px;
+    font-weight: 200;
+    text-align: center;
+}
+.cell {
+    border: 2px solid rgb(188, 188, 188);
+    width: 60px;
+    height: 60px;
+    margin: 2.5px;
+
+    color: rgb(37, 39, 39);
+    font-size: 30px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.correct-letter {
+    background-color: rgb(66, 219, 66);
+    color: rgb(250, 255, 255);
+}
+.existant-letter {
+    background-color: rgb(250, 237, 62);
+    color: rgb(250, 255, 255);
+}
+.non-existant-letter {
+    background-color: rgb(51, 51, 49);
+    color: rgb(250, 255, 255);
+}
+.keyboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+button {
+    background-color: rgb(157, 157, 243);
+    border: none;
+    display: inline-block;
+    padding:  9px 10px;
+    margin: 0.2rem;
+    font-size: 1rem;
+    color: rgb(255, 255, 255);
+    width: 50px;
+    height: 50px;
+    border-radius: 0.5rem;
+    transition: background-color 0.3s;
+    &:hover {
+        background-color: rgba(76, 76, 155, 0.9);
+        cursor: pointer;
+    }
+}
+
+.delete,
+.enter {
+    font-size: 1rem;
+    text-transform: capitalize;
+}
+.delete { width: 80px; }
+.enter { width: 320px; }
