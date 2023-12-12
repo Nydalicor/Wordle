@@ -1,3 +1,9 @@
+
+/**
+ * The HtmlContainer class represents an HTML container for the Wordle game.
+ * It provides the default HTML template and contains JavaScript functions for interacting with the game.
+ * It also provides a method to update the guess section of the HTML page.
+ */
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
@@ -192,8 +198,6 @@ public class HtmlContainer {
             "             .then(data => {\n" +
             "                let result = data.substring(11, 16);\n" +
             "                let attempts = data.substring(data.indexOf('[') + 1, data.indexOf(']'));\n" +
-            "                console.log(result);\n" +
-            "                console.log(attempts);\n" +
             "                 // Handle the response from the server\n" +
             "                // The response is a JSON object containing the result of the verification\n" +
             "                // The result is a string of 5 letters (G, Y, B)\n" +

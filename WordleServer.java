@@ -11,6 +11,10 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * The WordleServer class represents a server for the Wordle game. It handles
+ * client requests and manages game sessions.
+ */
 public class WordleServer {
 
     private final static Set<String> wordSet = WordleWordSet.WORD_SET;
@@ -19,6 +23,13 @@ public class WordleServer {
 
     private static String imagePath = "logo.png";
 
+    /**
+     * The main method starts the Wordle server and listens for client connections.
+     * 
+     * @param args The command line arguments.
+     * @throws InterruptedException If the server is interrupted while waiting for
+     *                              client connections.
+     */
     public static void main(String[] args) throws InterruptedException {
 
         final int port = 8021; // Specify the port number for the server
@@ -38,6 +49,12 @@ public class WordleServer {
         }
     }
 
+    /**
+     * Handles a client request by reading the request, processing it, and sending
+     * the response.
+     * 
+     * @param clientSocket The socket representing the client connection.
+     */
     private static void handleRequest(Socket clientSocket) {
         String rightWord = null;
         boolean noCookie = false;
@@ -62,10 +79,8 @@ public class WordleServer {
                 buffer = new char[bufferSize];
             }
             String sessionCookie = null;
-            System.out.println("un Cookie ? ");
             if (headers.containsKey("Cookie")) {
                 sessionCookie = getSessionCookie(headers.get("Cookie"));
-                System.out.println("Cookie: " + sessionCookie);
             }
             // Read the rest of the request
             int i = 0;
@@ -79,9 +94,6 @@ public class WordleServer {
                 }
             }
             body = new String(buffer);
-            if (body.length() != bufferSize) {
-                System.err.println("request_body.length() != content_length");
-            }
             if (request != null) {
                 String[] requestParts = request.split(" ");
                 String method = requestParts[0];
@@ -120,13 +132,24 @@ public class WordleServer {
                     sendResponse(outputStream, "Invalid request : not a GET nor a POST method", 400);
                 }
             }
-            System.out.println("Client disconnected");
             clientSocket.close();
         } catch (IOException e) {
             System.out.println("Problem : " + e.getMessage());
         }
     }
 
+    /**
+     * Plays the Wordle game by processing the client's guess and sending the
+     * response.
+     * 
+     * @param outputStream  The output stream to send the response to the client.
+     * @param sessionCookie The session cookie associated with the game session.
+     * @param query         The query string containing the client's guess.
+     * @param rightWord     The correct word for the game session.
+     * @param method        The HTTP method used in the request.
+     * @param noCookie      Indicates if the client has a session cookie.
+     * @throws IOException If an I/O error occurs while sending the response.
+     */
     private static void playWordle(OutputStream outputStream, String sessionCookie, String query, String rightWord,
             String method, boolean noCookie)
             throws IOException {
@@ -144,10 +167,12 @@ public class WordleServer {
         attemptsMap.get(sessionCookie).add(guess);
         char[] result = new char[5];
         Map<Character, Integer> map = new HashMap<>();
-        System.out.println("----------------------");
-        System.out.println("Right word: |" + rightWord + "|");
-        System.out.println("Query: |" + guess + "|");
-        System.out.println("Session cookie: " + sessionCookie);
+        /*
+         * System.out.println("----------------------");
+         * System.out.println("Right word: |" + rightWord + "|");
+         * System.out.println("Query: |" + guess + "|");
+         * System.out.println("Session cookie: " + sessionCookie);
+         */
         String response = "";
         StringBuilder stringBuilder = new StringBuilder();
         if (!guess.equals(rightWord)) {
@@ -194,7 +219,6 @@ public class WordleServer {
             }
 
             // Create response for the client, composed by the result and all attempts
-            // already done
             response = "{\"result\":\"" + stringBuilder.toString() + "\",\"attempts\":" + attemptsMap.get(sessionCookie)
                     + "}";
         } else {
@@ -213,13 +237,19 @@ public class WordleServer {
             // send the response to the client without using javascript
             HtmlContainer htmlContainer = new HtmlContainer(imagePath);
             htmlContainer.updateGuessSection(stringBuilder.toString(), guess);
-            response = getChunkResponse(htmlContainer.getHtml());
+            /*
+             * CHUNKED CODE :
+             * response = getChunkResponse(htmlContainer.getHtml());
+             * httpResponse = "HTTP/1.1 200 OK\r\n"
+             * + "Content-Type: text/html\r\n"
+             * + "Transfer-Encoding: chunked" + "\r\n";
+             */
+            response = htmlContainer.getHtml();
             httpResponse = "HTTP/1.1 200 OK\r\n"
                     + "Content-Type: text/html\r\n"
-                    + "Transfer-Encoding: chunked" + "\r\n";
+                    + "Content-Length: " + response.length() + "\r\n";
         }
         if (noCookie) {
-            System.out.println("Je met le cookie");
             httpResponse += "Set-Cookie: SESSIONID=" + sessionCookie + "; Max-Age=1800; SameSite=Strict\r\n"
                     + "Connection: close"
                     + "\r\n\r\n"
@@ -238,6 +268,108 @@ public class WordleServer {
         }
     }
 
+    /**
+     * Handles the redirect request by sending a 302 response to the client.
+     *
+     * @param outputStream  The output stream used to send the response to the
+     *                      client.
+     * @param sessionCookie The session cookie for the current user.
+     * @throws IOException If an I/O error occurs while handling the request.
+     */
+    private static void handleRedirect(OutputStream outputStream, String sessionCookie) throws IOException {
+        String httpResponse = "HTTP/1.1 302 Found\r\n"
+                + "Location: /play.html\r\n";
+        if (sessionCookie != null)
+            httpResponse += "Set-Cookie: SESSIONID=" + sessionCookie + "; Max-Age=1800; SameSite=Strict\r\n\r\n";
+        outputStream.write(httpResponse.getBytes());
+        outputStream.flush();
+    }
+
+    /**
+     * Handles the GET request by generating and sending an HTML response to the
+     * client.
+     *
+     * @param outputStream The output stream used to send the response to the
+     *                     client.
+     * @param path         The path of the requested resource.
+     * @throws IOException If an I/O error occurs while handling the request.
+     */
+    private static void handleGetRequest(OutputStream outputStream, String path) throws IOException {
+        try {
+            // byte[] bytes = readAllBytes(filePath);
+            // String mimeType = getMimeType(filePath);
+            HtmlContainer container = new HtmlContainer(imagePath);
+            String html = container.getHtml();
+            /*
+             * String httpResponse = "HTTP/1.1 200 OK\r\n"
+             * + "Content-Type: text/html\r\n"
+             * + "Transfer-Encoding: chunked\r\n"
+             * + "Connection: close"
+             * + "\r\n\r\n" + getChunkResponse(html);
+             */
+            String httpResponse = "HTTP/1.1 200 OK\r\n"
+                    + "Content-Type: text/html\r\n"
+                    + "Content-Length: " + html.length() + "\r\n"
+                    + "Connection: close"
+                    + "\r\n\r\n" + html;
+
+            outputStream.write(httpResponse.getBytes());
+            outputStream.flush();
+        } catch (IOException e) {
+            sendResponse(outputStream, "File not found", 404);
+        }
+    }
+
+    /**
+     * Handles a POST request by playing the Wordle game.
+     *
+     * @param outputStream  The output stream to write the response to.
+     * @param sessionCookie The session cookie for the current user.
+     * @param query         The query string of the request.
+     * @param rightWord     The correct word for the Wordle game.
+     * @param noCookie      Indicates whether the request has a session cookie or
+     *                      not.
+     * @throws IOException If an I/O error occurs while handling the request.
+     */
+    private static void handlePostRequest(OutputStream outputStream, String sessionCookie, String query,
+            String rightWord, boolean noCookie) throws IOException {
+        // print all method
+        playWordle(outputStream, sessionCookie, query, rightWord, "POST", noCookie);
+    }
+
+    /**
+     * Sends an HTTP response to the output stream.
+     *
+     * @param outputStream The output stream to send the response to.
+     * @param response     The response message to be sent.
+     * @param statusCode   The status code of the response.
+     * @throws IOException If an I/O error occurs while sending the response.
+     */
+    private static void sendResponse(OutputStream outputStream, String response, int statusCode) throws IOException {
+        /*
+         * CHUNKED CODE :
+         * String httpResponse = "HTTP/1.1 " + statusCode + " " +
+         * getStatusCodeMessage(statusCode) + "\r\n"
+         * + "Content-Type: text/html;charset=UTF-8\r\n"
+         * + "Transfer-Encoding: chunked\r\n\r\n"
+         * + getChunkResponse(response);
+         * outputStream.write(httpResponse.getBytes());
+         */
+        String httpResponse = "HTTP/1.1 " + statusCode + " " + getStatusCodeMessage(statusCode) + "\r\n"
+                + "Content-Type: text/html;charset=UTF-8\r\n"
+                + "Content-Length: " + response.length() + "\r\n\r\n"
+                + response;
+        outputStream.write(httpResponse.getBytes());
+        outputStream.flush();
+    }
+
+    /**
+     * CHUNKED CODE :
+     * Generates a chunked response for the HTML content.
+     * 
+     * @param response The HTML content to be sent in chunks.
+     * @return The formatted chunked response.
+     */
     private static String getChunkResponse(String response) {
         StringBuilder formattedResponse = new StringBuilder();
 
@@ -262,6 +394,12 @@ public class WordleServer {
         return formattedResponse.toString();
     }
 
+    /**
+     * Retrieves the session cookie from the given request.
+     *
+     * @param request the request string containing the cookies
+     * @return the session cookie value, or null if not found
+     */
     private static String getSessionCookie(String request) {
         String sessionCookie = null;
         String[] cookies = request.split("; ");
@@ -275,47 +413,12 @@ public class WordleServer {
         return sessionCookie;
     }
 
-    // Redirect to play.html file
-    private static void handleRedirect(OutputStream outputStream, String sessionCookie) throws IOException {
-        String httpResponse = "HTTP/1.1 302 Found\r\n"
-                + "Location: /play.html\r\n";
-        if (sessionCookie != null)
-            httpResponse += "Set-Cookie: SESSIONID=" + sessionCookie + "; Max-Age=1800; SameSite=Strict\r\n\r\n";
-        outputStream.write(httpResponse.getBytes());
-    }
-
-    private static void handleGetRequest(OutputStream outputStream, String path) throws IOException {
-        try {
-            // byte[] bytes = readAllBytes(filePath);
-            // String mimeType = getMimeType(filePath);
-            HtmlContainer container = new HtmlContainer(imagePath);
-            String html = container.getHtml();
-            String httpResponse = "HTTP/1.1 200 OK\r\n"
-                    + "Content-Type: text/html\r\n"
-                    + "Transfer-Encoding: chunked\r\n"
-                    + "Connection: close"
-                    + "\r\n\r\n";
-            outputStream.write(httpResponse.getBytes());
-            outputStream.write(getChunkResponse(html).getBytes());
-        } catch (IOException e) {
-            sendResponse(outputStream, "File not found", 404);
-        }
-    }
-
-    private static void handlePostRequest(OutputStream outputStream, String sessionCookie, String query,
-            String rightWord, boolean noCookie) throws IOException {
-        // print all method
-        playWordle(outputStream, sessionCookie, query, rightWord, "POST", noCookie);
-    }
-
-    private static void sendResponse(OutputStream outputStream, String response, int statusCode) throws IOException {
-        String httpResponse = "HTTP/1.1 " + statusCode + " " + getStatusCodeMessage(statusCode) + "\r\n"
-                + "Content-Type: text/html;charset=UTF-8\r\n"
-                + "Transfer-Encoding: chunked\r\n\r\n"
-                + getChunkResponse(response);
-        outputStream.write(httpResponse.getBytes());
-    }
-
+    /**
+     * Returns the status code message for the given status code.
+     *
+     * @param statusCode the status code
+     * @return the status code message
+     */
     private static String getStatusCodeMessage(int statusCode) {
         switch (statusCode) {
             case 200:
